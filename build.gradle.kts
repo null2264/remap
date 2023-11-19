@@ -9,8 +9,8 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-group = "com.github.replaymod"
-version = "SNAPSHOT"
+group = "io.github.null2264"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -22,6 +22,7 @@ val testB by sourceSets.creating
 
 kotlinVersion("1.5.21", isPrimaryVersion = true)
 kotlinVersion("1.6.20")
+kotlinVersion("1.9.0")
 
 dependencies {
     api("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.5.21")
@@ -45,6 +46,28 @@ publishing {
     publications {
         create("maven", MavenPublication::class) {
             from(components["java"])
+        }
+    }
+
+    val publishingPassword: String? = run {
+        return@run System.getenv("MAVEN_PASS")
+    }
+
+    repositories {
+        mavenLocal()
+        if (publishingPassword != null) {
+            fun MavenArtifactRepository.applyCredentials() {
+                authentication.create<BasicAuthentication>("basic")
+            }
+
+            maven {
+                url = uri("https://maven.aap.my.id/releases")
+                applyCredentials()
+                credentials {
+                    username = "admin"
+                    password = publishingPassword
+                }
+            }
         }
     }
 }
