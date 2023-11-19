@@ -72,7 +72,7 @@ class Transformer(private val map: MappingSet) {
             config.put(CommonConfigurationKeys.MODULE_NAME, "main")
             jdkHome?.let {config.setupJdk(it) }
             config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, JavaSourceRoot(tmpDir.toFile(), ""))
-            config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, createSourceRoot(tmpDir.toAbsolutePath().toString(), false))
+            config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, kotlinSourceRoot(tmpDir.toAbsolutePath().toString(), false))
             config.addAll<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, classpath!!.map { JvmClasspathRoot(File(it)) })
             config.put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.err, MessageRenderer.GRADLE_STYLE, true))
 

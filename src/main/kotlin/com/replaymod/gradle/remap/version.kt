@@ -17,13 +17,13 @@ fun analyze(
     }
 }
 
-fun createSourceRoot(
+fun kotlinSourceRoot(
     tempDir: String,
     isCommon: Boolean
 ): KotlinSourceRoot {
     return try {
         KotlinSourceRoot(tempDir, isCommon)
     } catch (e: Throwable) {
-        createSourceRoot190(tempDir, isCommon)
+        kotlinSourceRoot190(tempDir, isCommon)
     }
 }
