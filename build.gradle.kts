@@ -10,7 +10,8 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 val ENV = { key: String -> System.getenv(key) }
