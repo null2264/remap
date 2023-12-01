@@ -9,14 +9,8 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    this.options.release.set(8)
-}
-
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 val ENV = { key: String -> System.getenv(key) }
