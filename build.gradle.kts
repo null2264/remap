@@ -9,6 +9,11 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+}
+
 val ENV = { key: String -> System.getenv(key) }
 
 group = "io.github.null2264"
