@@ -84,7 +84,7 @@ class Transformer(private val map: MappingSet) {
                     config,
                     EnvironmentConfigFiles.JVM_CONFIG_FILES
             )
-            val rootArea = Extensions.getRootArea()
+            @Suppress("DEPRECATION") val rootArea = Extensions.getRootArea()
             synchronized(rootArea) {
                 if (!rootArea.hasExtensionPoint(CustomExceptionHandler.KEY)) {
                     rootArea.registerExtensionPoint(CustomExceptionHandler.KEY.name, CustomExceptionHandler::class.java.name, ExtensionPoint.Kind.INTERFACE)
