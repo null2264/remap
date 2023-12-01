@@ -9,6 +9,8 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+val ENV = System.getenv()
+
 group = "io.github.null2264"
 version = "1.0-SNAPSHOT"
 
@@ -42,6 +44,10 @@ tasks.named<Jar>("jar") {
     archiveBaseName.set("remap")
 }
 
+if (ENV.S3_ENDPOINT != null) {
+	System.setProperty("org.gradle.s3.endpoint", ENV.S3_ENDPOINT)
+}
+
 publishing {
     publications {
         create("maven", MavenPublication::class) {
@@ -49,23 +55,14 @@ publishing {
         }
     }
 
-    val publishingPassword: String? = run {
-        return@run System.getenv("MAVEN_PASS")
-    }
-
     repositories {
         mavenLocal()
-        if (publishingPassword != null) {
-            fun MavenArtifactRepository.applyCredentials() {
-                authentication.create<BasicAuthentication>("basic")
-            }
-
+        if (ENV.AWS_ACCESS_KEY != null && ENV.AWS_SECRET_KEY != null) {
             maven {
-                url = uri("https://maven.aap.my.id/releases")
-                applyCredentials()
-                credentials {
-                    username = "admin"
-                    password = publishingPassword
+                url = uri("s3://maven")
+                credentials(AwsCredentials) {
+                    accessKey = ENV.AWS_ACCESS_KEY
+                    secretKey = ENV.AWS_SECRET_KEY
                 }
             }
         }
