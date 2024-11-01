@@ -487,11 +487,7 @@ internal class PsiMapper(
                     methodName.startsWith("is") -> methodName.substring(2)
                     methodName.startsWith("get") || methodName.startsWith("set") -> methodName.substring(3)
                     else -> null
-<<<<<<< HEAD
-                }?.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-=======
                 }?.replaceFirstChar { it.lowercase() }
->>>>>>> 0299ac153c165ad4267c004458312a6711e51bf9
 
                 val target = annotation.parameterList.attributes.find {
                     it.name == null || it.name == "value"
