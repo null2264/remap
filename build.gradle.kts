@@ -11,7 +11,7 @@ java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 val ENV = { key: String -> System.getenv(key) }
 
 group = "io.github.null2264"
-version = "1.0-SNAPSHOT"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
