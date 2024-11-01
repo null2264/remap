@@ -1,13 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "2.0.0"
     `maven-publish`
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.jvmTarget = "1.8"
-}
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -30,6 +29,7 @@ val testB by sourceSets.creating
 kotlinVersion("1.5.21", isPrimaryVersion = true)
 kotlinVersion("1.6.20")
 kotlinVersion("1.9.0")
+kotlinVersion("2.0.0")
 
 dependencies {
     api("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.5.21")
@@ -76,6 +76,13 @@ publishing {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        apiVersion.set(KotlinVersion.KOTLIN_1_8)
+        apiVersion.set(KotlinVersion.KOTLIN_1_8)
+    }
 }
 
 fun kotlinVersion(version: String, isPrimaryVersion: Boolean = false) {

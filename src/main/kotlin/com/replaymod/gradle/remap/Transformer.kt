@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.com.intellij.openapi.util.registry.Registry
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
@@ -46,6 +47,7 @@ class Transformer(private val map: MappingSet) {
     var remappedJdkHome: File? = null
     var patternAnnotation: String? = null
     var manageImports = false
+    var verboseCompilerMessages = false
 
     @Throws(IOException::class)
     fun remap(sources: Map<String, String>): Map<String, Pair<String, List<Pair<Int, String>>>> =
@@ -72,19 +74,35 @@ class Transformer(private val map: MappingSet) {
             config.put(CommonConfigurationKeys.MODULE_NAME, "main")
             jdkHome?.let {config.setupJdk(it) }
             config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, JavaSourceRoot(tmpDir.toFile(), ""))
-            config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, kotlinSourceRoot(tmpDir.toAbsolutePath().toString(), false))
+            val kotlinSourceRoot = try {
+                kotlinSourceRoot1521(tmpDir.toAbsolutePath().toString(), false)
+            } catch (e: NoSuchMethodError) {
+                kotlinSourceRoot190(tmpDir.toAbsolutePath().toString(), false)
+            }
+            config.add<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, kotlinSourceRoot)
             config.addAll<ContentRoot>(CLIConfigurationKeys.CONTENT_ROOTS, classpath!!.map { JvmClasspathRoot(File(it)) })
-            config.put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.err, MessageRenderer.GRADLE_STYLE, true))
+            config.put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.err, MessageRenderer.GRADLE_STYLE, verboseCompilerMessages))
 
             // Our PsiMapper only works with the PSI tree elements, not with the faster (but kotlin-specific) classes
             config.put(JVMConfigurationKeys.USE_PSI_CLASS_FILES_READING, true)
+
+            // Mark Registry as loaded, otherwise RegistryKey will (provided a sufficiently complex project) log
+            // messages about it being accessed before it is loaded (and it won't ever be loaded naturally).
+            val loadedField = try {
+                Registry::class.java.getDeclaredField("myLoaded")
+            } catch (_: NoSuchFieldException) {
+                Registry::class.java.getDeclaredField("isLoaded")
+            }
+            loadedField.isAccessible = true
+            loadedField.set(Registry.getInstance(), true)
 
             val environment = KotlinCoreEnvironment.createForProduction(
                     disposable,
                     config,
                     EnvironmentConfigFiles.JVM_CONFIG_FILES
             )
-            @Suppress("DEPRECATION") val rootArea = Extensions.getRootArea()
+            @Suppress("DEPRECATION")
+            val rootArea = Extensions.getRootArea()
             synchronized(rootArea) {
                 if (!rootArea.hasExtensionPoint(CustomExceptionHandler.KEY)) {
                     rootArea.registerExtensionPoint(CustomExceptionHandler.KEY.name, CustomExceptionHandler::class.java.name, ExtensionPoint.Kind.INTERFACE)
@@ -98,7 +116,16 @@ class Transformer(private val map: MappingSet) {
             val psiFiles = virtualFiles.mapValues { psiManager.findFile(it.value)!! }
             val ktFiles = psiFiles.values.filterIsInstance<KtFile>()
 
-            val analysis = analyze(environment, ktFiles)
+            val analysis = try {
+                analyze1521(environment, ktFiles)
+            } catch (e: NoSuchMethodError) {
+                try {
+                    analyze1620(environment, ktFiles)
+                } catch (e: NoSuchMethodError) {
+                    analyze200(environment, ktFiles)
+                }
+            }
+
             val remappedEnv = remappedClasspath?.let {
                 setupRemappedProject(disposable, it, processedTmpDir)
             }
@@ -168,7 +195,7 @@ class Transformer(private val map: MappingSet) {
         if (manageImports) {
             config.add(CLIConfigurationKeys.CONTENT_ROOTS, JavaSourceRoot(sourceRoot.toFile(), ""))
         }
-        config.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.err, MessageRenderer.GRADLE_STYLE, true))
+        config.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.err, MessageRenderer.GRADLE_STYLE, verboseCompilerMessages))
 
         val environment = KotlinCoreEnvironment.createForProduction(
             disposable,
@@ -178,7 +205,11 @@ class Transformer(private val map: MappingSet) {
         try {
             analyze1521(environment, emptyList())
         } catch (e: NoSuchMethodError) {
-            analyze1620(environment, emptyList())
+            try {
+                analyze1620(environment, emptyList())
+            } catch (e: NoSuchMethodError) {
+                analyze200(environment, emptyList())
+            }
         }
         return environment
     }
